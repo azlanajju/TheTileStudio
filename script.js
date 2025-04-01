@@ -57,14 +57,59 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   });
 });
 
-// Simple form submission
+// Form submission handling
 const contactForm = document.querySelector(".contact-form");
 if (contactForm) {
-  contactForm.addEventListener("submit", (e) => {
+  contactForm.addEventListener("submit", function (e) {
     e.preventDefault();
-    // Add your form submission logic here
-    alert("Form submitted successfully!");
-    contactForm.reset();
+
+    const submitButton = this.querySelector(".submit-button");
+    const originalText = submitButton.textContent;
+    submitButton.textContent = "Sending...";
+    submitButton.disabled = true;
+
+    const formData = new FormData(this);
+
+    fetch("mail.php", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.text())
+      .then((data) => {
+        // Show success message
+        const successMessage = document.createElement("div");
+        successMessage.className = "success-message";
+        successMessage.textContent = data;
+        contactForm.appendChild(successMessage);
+
+        // Reset form
+        contactForm.reset();
+
+        // Reset button
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+
+        // Remove success message after 5 seconds
+        setTimeout(() => {
+          successMessage.remove();
+        }, 5000);
+      })
+      .catch((error) => {
+        // Show error message
+        const errorMessage = document.createElement("div");
+        errorMessage.className = "error-message";
+        errorMessage.textContent = "There was an error sending your message. Please try again.";
+        contactForm.appendChild(errorMessage);
+
+        // Reset button
+        submitButton.textContent = originalText;
+        submitButton.disabled = false;
+
+        // Remove error message after 5 seconds
+        setTimeout(() => {
+          errorMessage.remove();
+        }, 5000);
+      });
   });
 }
 
